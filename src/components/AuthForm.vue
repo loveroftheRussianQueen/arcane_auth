@@ -18,6 +18,8 @@
                     {{ code.flag }}
                     {{ code.dial_code }}
                   </option>
+                 <model-select :options="codes" v-model="selected" placeholder="Выбрать код">
+                 </model-select>
                 </select>
               </div>
               <div class="number">
@@ -48,10 +50,11 @@
 
 <script setup>
 import { ref } from 'vue'
+import { ModelSelect } from 'vue-search-select'
 import codes from '../api/data/phone_codes.json';
 import { onUpdated } from 'vue';
 
-const selected = ref(0);
+const selected = ref(null);
 const lang = ref('Русский');
 
 onUpdated(() =>{
@@ -147,7 +150,7 @@ const options = ref([
 
           label {
             position: absolute;
-            top: -8px;
+            top: -20px;
             left: 20px;
             font-family: Roboto;
             font-size: 12px;
@@ -177,6 +180,10 @@ const options = ref([
             background: url('../assets/icons/arrow.svg') no-repeat  96% / 15% #fff;
             background-size: 25px;
             border-radius: 4px;
+
+            &:focus{
+              outline: none;
+            }
           }
         }
 
@@ -195,6 +202,10 @@ const options = ref([
                 font-weight: 400;
                 line-height: 24px; 
                 letter-spacing: 0.15px; 
+            }
+
+            &:focus{
+              outline: none;
             }
           }
         }
@@ -253,11 +264,15 @@ const options = ref([
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            background: url('../assets/icons/arrow_small.svg') no-repeat 50% transparent;
-            background-size: 15px;
+            background: url('../assets/icons/arrow_small.svg') no-repeat 65% transparent;
+            background-size: 14px;
             border-radius: 4px;
             border: 0px;
             width: 100px;
+
+            &:focus{
+              outline: none;
+            }
         }
     }
 
