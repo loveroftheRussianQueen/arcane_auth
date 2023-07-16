@@ -13,19 +13,13 @@
               <div class="country">
                 <label>Страна</label>
                 <select v-model="selected" :value="selected" @change="changeCode" placeholder="Страна">
+                  <input typ="search" placeholder="Впишите страну"/>
                   <option v-for="code in codes" v-bind:value="code.dial_code">
                     {{ code.name }}
                     {{ code.flag }}
                     {{ code.dial_code }}
                   </option>
                 </select>
-                <model-select
-                  ref="select"
-                  :options="options"
-                  v-model="selected"
-                  placeholder="placeholder text"
-                >
-                </model-select>
               </div>
               <div class="number">
                 <label>Номер телефона</label>
@@ -61,8 +55,6 @@ import { ModelSelect } from 'vue-search-select';
 import axios from 'axios';
 import codes from '../api/data/phone_codes.json';
 
-const options = ref(codes);
-
 const selected = ref(null);
 const lang = ref('Русский');
 const phone = ref('');
@@ -70,7 +62,7 @@ let isValidPhoneNumber = ref(true);
 const step = ref('');
 
 onMounted(() =>{
-  console.log(options.value);
+  console.log(codes);
 })
 
 const key = import.meta.env.VITE_API_KEY;
