@@ -23,12 +23,15 @@
               </div>
               <div class="number">
                 <label>Номер телефона</label>
+                <label>Номер телефона</label>
+                <input type="text" placeholder="Введите код" v-model="code" v-if="step == 'send'"/>
                 <input :class="{invalid: !isValidPhoneNumber}" type="text" placeholder="Номер телефона" v-model="phone"  @keyup="validatePhoneNumber"/>
                 <div class="validation" v-if="!isValidPhoneNumber">Неверный формат номера</div>
               </div>
             </div>
           </div>
           <div class="container__main__button">
+            <button @click.prevent="createSession">Продолжить</button>
             <button @click.prevent="createSession">Продолжить</button>
           </div>
         </div>
@@ -51,7 +54,6 @@
 
 <script setup>
 import { ref, onUpdated, onMounted } from 'vue'
-import { ModelSelect } from 'vue-search-select';
 import axios from 'axios';
 import codes from '../api/data/phone_codes.json';
 
@@ -60,6 +62,8 @@ const lang = ref('Русский');
 const phone = ref('');
 let isValidPhoneNumber = ref(true);
 const step = ref('');
+const session_id = ref('');
+const options = ref(['list', 'of', 'options']);
 
 onMounted(() =>{
   console.log(codes);
@@ -80,13 +84,20 @@ const createSession = async() =>{
   if(isValidPhoneNumber.value == true){
     phone.value = phone.value.replaceAll('+', '');
     const response = await axios.get(`https://api.dev.kod.mobi/api/v1/message/create?phone=${phone.value}&type=sms&lang=ru&x-api-key=${key}`);
-    console.log(response.data);
+    session_id.value = response.data.data.session_id;
+    step.value = 'create';
+    console.log(session_id.value);
   }else{
     console.log('Invalid phone number');
     console.log(isValidPhoneNumber.value);
   }
 }
 
+const sendCode = async() =>{
+  if(session_id.value){
+    const response = axios.get(`https://api.dev.kod.mobi/api/v1/message/send?session_id=&type=sms&x-api-key=${key}`)
+  }
+}
 onUpdated(() =>{
   console.log(isValidPhoneNumber.value);
 })
