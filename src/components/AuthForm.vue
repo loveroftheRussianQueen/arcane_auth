@@ -12,23 +12,30 @@
             <div class="container__main__form__inputs">
               <div class="country">
                 <label>Страна</label>
-                <select v-model="selected" :value="selected" placeholder="Страна">
+                <select v-model="selected" :value="selected" @change="changeCode" placeholder="Страна">
                   <option v-for="code in codes" v-bind:value="code.dial_code">
                     {{ code.name }}
                     {{ code.flag }}
                     {{ code.dial_code }}
                   </option>
-                 <model-select :options="codes" v-model="selected" placeholder="Выбрать код">
-                 </model-select>
                 </select>
+                <model-select
+                  ref="select"
+                  :options="options"
+                  v-model="selected"
+                  placeholder="placeholder text"
+                >
+                </model-select>
               </div>
               <div class="number">
-                <input type="text" placeholder="Номер телефона" :value="selected"/>
+                <label>Номер телефона</label>
+                <input :class="{invalid: !isValidPhoneNumber}" type="text" placeholder="Номер телефона" v-model="phone"  @keyup="validatePhoneNumber"/>
+                <div class="validation" v-if="!isValidPhoneNumber">Неверный формат номера</div>
               </div>
             </div>
           </div>
           <div class="container__main__button">
-            <button>Продолжить</button>
+            <button @click.prevent="createSession">Продолжить</button>
           </div>
         </div>
         <div class="container__footer">
@@ -49,23 +56,52 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { ModelSelect } from 'vue-search-select'
+import { ref, onUpdated, onMounted } from 'vue'
+import { ModelSelect } from 'vue-search-select';
+import axios from 'axios';
 import codes from '../api/data/phone_codes.json';
-import { onUpdated } from 'vue';
+
+const options = ref(codes);
 
 const selected = ref(null);
 const lang = ref('Русский');
+const phone = ref('');
+let isValidPhoneNumber = ref(true);
+const step = ref('');
 
-onUpdated(() =>{
-    console.log(selected.value);
+onMounted(() =>{
+  console.log(options.value);
 })
 
-const options = ref([
-  { text: 'Один', value: 'А' },
-  { text: 'Два', value: 'Б' },
-  { text: 'Три', value: 'В' }
-])
+const key = import.meta.env.VITE_API_KEY;
+
+const validatePhoneNumber = () =>{
+  const validationRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im;
+  if (phone.value.match(validationRegex)) {
+        isValidPhoneNumber.value = true;
+      } else {
+        isValidPhoneNumber.value = false;
+      }
+}
+
+const createSession = async() =>{
+  if(isValidPhoneNumber.value == true){
+    phone.value = phone.value.replaceAll('+', '');
+    const response = await axios.get(`https://api.dev.kod.mobi/api/v1/message/create?phone=${phone.value}&type=sms&lang=ru&x-api-key=${key}`);
+    console.log(response.data);
+  }else{
+    console.log('Invalid phone number');
+    console.log(isValidPhoneNumber.value);
+  }
+}
+
+onUpdated(() =>{
+  console.log(isValidPhoneNumber.value);
+})
+const changeCode = () =>{
+  phone.value = selected.value;
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -188,6 +224,20 @@ const options = ref([
         }
 
         .number {
+          position: relative;
+          label {
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            font-family: Roboto;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px; /* 133.333% */
+            letter-spacing: 0.4px;
+            color: #9e9e9e;
+          }
+
           input {
             width: 440px;
             height: 55px;
@@ -207,6 +257,22 @@ const options = ref([
             &:focus{
               outline: none;
             }
+
+            &.invalid{
+              border: 1px solid #EB4036;
+            }
+          }
+
+          .validation{
+            font-family: Roboto;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 16px; /* 133.333% */
+            letter-spacing: 0.4px; 
+            color: #EB4036;
+            margin-left: 16px;
+            margin-top: 4px;
           }
         }
       }
