@@ -13,7 +13,7 @@
             </div>
             <div class="container__main__form__inputs">
               <div class="country">
-                <label v-if="step==='create'">Страна</label>
+                <label v-if="step === 'create'">Страна</label>
                 <select
                   v-model="selected"
                   :value="selected"
@@ -27,7 +27,7 @@
                     {{ code.dial_code }}
                   </option>
                 </select>
-                <label v-if="step==='send'">Способ получения кода</label>
+                <label v-if="step === 'send'">Способ получения кода</label>
                 <select
                   v-model="option"
                   :value="option"
@@ -36,28 +36,33 @@
                 >
                   <option v-for="option in options" v-bind:value="option.name">
                     {{ option.name }}
-                    <img :src="option.icon" alt="Social media icon"/>
+                    <img :src="option.icon" alt="Social media icon" />
                   </option>
                 </select>
               </div>
               <div class="number">
-                <label>Номер телефона</label>
-                <input type="text" placeholder="Введите код" v-model="code" v-if="step == 'send'" />
+                <input type="text" v-model="code" :class="{ invalid: !isValidCode }" v-if="step == 'send'" />
                 <input
                   :class="{ invalid: !isValidPhoneNumber }"
                   type="text"
-                  placeholder="Номер телефона"
                   v-model="phone"
                   @keyup="validatePhoneNumber"
                   v-if="step === 'create'"
                 />
+                <label v-if="step === 'create'">Номер телефона</label>
+                <label v-if="step === 'send'">Введите код</label>
                 <div class="validation" v-if="!isValidPhoneNumber">Неверный формат номера</div>
+                <div class="validation" v-if="!isValidCode">Код введен неверно</div>
               </div>
             </div>
           </div>
           <div class="container__main__button">
+            <div class="back" v-if="step === 'send'" @click="navigateBack">
+              <img src="../assets/icons/arrow_back.svg" alt="Arrow back" />
+              <p>Назад</p>
+            </div>
             <button @click.prevent="createSession" v-if="step === 'create'">Продолжить</button>
-            <button @click.prevent="sendCode" v-if="step === 'send'">Отправить</button>
+            <button @click.prevent="checkCode" v-if="step === 'send'">Далее</button>
           </div>
         </div>
         <div class="container__footer">
@@ -86,7 +91,9 @@ import whatsapp from '../assets/icons/whatsapp.svg'
 const selected = ref(null)
 const lang = ref('Русский')
 const phone = ref('')
+const status = ref(false)
 let isValidPhoneNumber = ref(true)
+let isValidCode = ref(true)
 const step = ref('create')
 const code = ref('')
 const session_id = ref('')
@@ -129,7 +136,7 @@ const createSession = async () => {
   if (isValidPhoneNumber.value == true) {
     phone.value = phone.value.replaceAll('+', '')
     const response = await axios.get(
-      `https://api.dev.kod.mobi/api/v1/message/create?phone=${phone.value}&type=telegram&lang=ru&x-api-key=${key}`
+      `https://api.kod.mobi/api/v1/message/create?phone=${phone.value}&type=telegram&lang=ru&x-api-key=${key}`
     )
     session_id.value = response.data.data.session_id
     step.value = 'send'
@@ -143,14 +150,31 @@ const createSession = async () => {
 const sendCode = async () => {
   if (session_id.value) {
     const response = await axios.get(
-      `https://api.dev.kod.mobi/api/v1/message/send?session_id=${session_id.value}&type=sms&x-api-key=${key}`
+      `https://api.kod.mobi/api/v1/message/send?session_id=${session_id.value}&type=telegram&x-api-key=${key}`
     )
     console.log(response.data)
   }
 }
-onUpdated(() => {
-  console.log(isValidPhoneNumber.value)
-})
+
+const checkCode = async () => {
+  if (session_id.value) {
+    try{
+      const response = await axios.get(
+      `https://api.kod.mobi/api/v1/message/check?session_id=${session_id.value}&code=${code.value}&lang=ru&x-api-key=${key}`
+    )
+    console.log(response.data);
+    isValidCode.value = true
+    step.value = 'final'
+    }catch(error){
+      console.log(error)
+      isValidCode.value = false
+    }
+  }
+}
+
+const navigateBack = () =>{
+  step.value = 'create';
+}
 const changeCode = () => {
   phone.value = selected.value
 }
@@ -278,17 +302,23 @@ const changeCode = () => {
 
         .number {
           position: relative;
+
+          input:focus + label{
+              top: -20px;
+              font-size: 12px;
+          }
           label {
             position: absolute;
-            top: -20px;
+            top: 15px;
             left: 20px;
             font-family: Roboto;
-            font-size: 12px;
+            font-size: 16px;
             font-style: normal;
             font-weight: 400;
-            line-height: 16px; /* 133.333% */
-            letter-spacing: 0.4px;
+            line-height: 24px; 
+            letter-spacing: 0.15px;
             color: #9e9e9e;
+            transition: 0.3s all;
           }
 
           input {
@@ -360,6 +390,27 @@ const changeCode = () => {
         font-weight: 500;
         line-height: 36px;
       }
+
+    .back{
+      cursor: pointer;
+      display: flex;
+      height: 55px;
+      padding: 0px 16px;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      flex: 1 0 0;
+
+      p{
+        color: #007AFF;
+        text-align: center;
+        font-family: Roboto;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 36px;
+      }
+    }
     }
   }
 
