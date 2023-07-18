@@ -1,19 +1,27 @@
 <template>
   <div class="main">
     <form class="form_auth">
+      <div class="arrow_back" @click="navigateBack" v-if="step === 'final'">
+        <img src="../assets/icons/arrow_back.svg" alt="Arrow back icon"/>
+      </div>
       <div class="container">
         <div class="container__main">
           <div class="container__main__form">
             <div class="container__main__form__header">
-              <div class="logo">Логотип (Высота 40px, длина до 300px)</div>
-              <h2 class="title" v-if="step === 'create'">Введите номер телефона</h2>
-              <h2 class="title" v-if="step === 'send'">Введите код</h2>
-              <p v-if="step === 'create'">Чтобы войти или зарегистрироваться</p>
-              <p v-if="step === 'send'">Отправлен по номеру {{ phone }}</p>
+              <div class="logo" :class="{'final_logo' : step === 'final'}">
+                <p v-if="step === 'create' || step === 'send'">{{ $t("title.logo") }}</p>
+                <img src="../assets/icons/telegram_big.svg" alt = "Big telegram logo" v-if="step === 'final'"/>
+              </div>
+              <h2 class="title" v-if="step === 'create'">{{ $t("title.phone") }}</h2>
+              <h2 class="title" v-if="step === 'send'">{{ $t("title.code") }}</h2>
+              <h2 class="title" v-if="step === 'final'">Telegram</h2>
+              <p v-if="step === 'create'">{{$t("paragraph.register")}}</p>
+              <p v-if="step === 'send'">{{ $t("paragraph.to_number") }} {{ phone }}</p>
+              <p v-if="step === 'final'">{{ $t("paragraph.channel") }}</p>
             </div>
-            <div class="container__main__form__inputs">
+            <div class="container__main__form__inputs" v-if="step === 'create' || step === 'send'">
               <div class="country">
-                <label v-if="step === 'create'">Страна</label>
+                <label v-if="step === 'create'">{{ $t("inputs.country") }}</label>
                 <select
                   v-model="selected"
                   :value="selected"
@@ -27,7 +35,7 @@
                     {{ code.dial_code }}
                   </option>
                 </select>
-                <label v-if="step === 'send'">Способ получения кода</label>
+                <label v-if="step === 'send'">{{ $t("inputs.code_option") }}</label>
                 <select
                   v-model="option"
                   :value="option"
@@ -41,40 +49,44 @@
                 </select>
               </div>
               <div class="number">
-                <input type="text" v-model="code" :class="{ invalid: !isValidCode }" v-if="step == 'send'" />
+                <input type="text" v-model="code" :class="{ invalid: !isValidCode }" v-if="step == 'send'" required/>
                 <input
                   :class="{ invalid: !isValidPhoneNumber }"
                   type="text"
                   v-model="phone"
                   @keyup="validatePhoneNumber"
                   v-if="step === 'create'"
+                  required
                 />
-                <label v-if="step === 'create'">Номер телефона</label>
-                <label v-if="step === 'send'">Введите код</label>
-                <div class="validation" v-if="!isValidPhoneNumber">Неверный формат номера</div>
-                <div class="validation" v-if="!isValidCode">Код введен неверно</div>
+                
+                <label v-if="step === 'create'">{{ $t("inputs.phone") }}</label>
+                <label v-if="step === 'send'">{{ $t("inputs.code") }}</label>
+                <div class="validation" v-if="!isValidPhoneNumber">{{ $t("inputs.wrong_phone") }}</div>
+                <div class="validation" v-if="!isValidCode">{{ $t("inputs.wrong_code") }}</div>
+                <button class="send" @click.prevent="sendCode" v-if="step === 'send'">{{ $t("buttons.send") }}</button>
               </div>
             </div>
           </div>
-          <div class="container__main__button">
+          <div class="container__main__button" :class="{'final': step === 'final'}">
             <div class="back" v-if="step === 'send'" @click="navigateBack">
-              <img src="../assets/icons/arrow_back.svg" alt="Arrow back" />
-              <p>Назад</p>
+              <img src="../assets/icons/arrow_back_blue.svg" alt="Arrow back" />
+              <p>{{ $t("buttons.back") }}</p>
             </div>
-            <button @click.prevent="createSession" v-if="step === 'create'">Продолжить</button>
-            <button @click.prevent="checkCode" v-if="step === 'send'">Далее</button>
+            <div class="back" v-if="step === 'final'">
+              <p>{{ $t("buttons.status") }}</p>
+            </div>
+            <button @click.prevent="createSession" v-if="step === 'create'">{{ $t("buttons.register") }}</button>
+            <button @click.prevent="checkCode" v-if="step === 'send'">{{ $t("buttons.register") }}</button>
+            <button v-if="step === 'final'">{{ $t("buttons.authorize") }}</button>
           </div>
         </div>
         <div class="container__footer">
-          <div class="container__footer__language">
-            <select v-model="lang">
-              <option>Русский</option>
-              <option>English</option>
-            </select>
+          <div class="container__footer__language" v-if="step === 'create' || step === 'send'">
+            <LanguageSwitcher></LanguageSwitcher>
           </div>
-          <div class="container__footer__terms">
-            <p>Условия</p>
-            <p>Конфиденциальность</p>
+          <div class="container__footer__terms" v-if="step === 'create' || step === 'send'">
+            <p>{{ $t("footer.terms") }}</p>
+            <p>{{ $t("footer.conf") }}</p>
           </div>
         </div>
       </div>
@@ -86,7 +98,8 @@
 import { ref, onUpdated, onMounted } from 'vue'
 import axios from 'axios'
 import codes from '../api/data/phone_codes.json'
-import whatsapp from '../assets/icons/whatsapp.svg'
+
+import LanguageSwitcher from './LanguageSwitcher.vue';
 
 const selected = ref(null)
 const lang = ref('Русский')
@@ -97,6 +110,7 @@ let isValidCode = ref(true)
 const step = ref('create')
 const code = ref('')
 const session_id = ref('')
+const option = ref('')
 const options = ref([
   {
     name: 'Whatsapp',
@@ -104,18 +118,18 @@ const options = ref([
   },
   {
     name: 'Telegram',
-    icon: ''
+    icon: '/src/assets/icons/telegram.svg'
   },
   {
     name: 'Viber',
-    icon: ''
+    icon: '/src/assets/icons/viber.svg'
   },
   {
     name: 'SMS',
-    icon: ''
+    icon: '/src/assets/icons/sms.svg'
   }
 ])
-const option = ref('')
+
 
 onMounted(() => {
   console.log(codes)
@@ -148,7 +162,7 @@ const createSession = async () => {
 }
 
 const sendCode = async () => {
-  if (session_id.value) {
+  if (session_id.value.length > 0) {
     const response = await axios.get(
       `https://api.kod.mobi/api/v1/message/send?session_id=${session_id.value}&type=telegram&x-api-key=${key}`
     )
@@ -162,7 +176,7 @@ const checkCode = async () => {
       const response = await axios.get(
       `https://api.kod.mobi/api/v1/message/check?session_id=${session_id.value}&code=${code.value}&lang=ru&x-api-key=${key}`
     )
-    console.log(response.data);
+    console.log(response.data.data);
     isValidCode.value = true
     step.value = 'final'
     }catch(error){
@@ -175,6 +189,7 @@ const checkCode = async () => {
 const navigateBack = () =>{
   step.value = 'create';
 }
+
 const changeCode = () => {
   phone.value = selected.value
 }
@@ -191,12 +206,20 @@ const changeCode = () => {
 }
 
 .form_auth {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
   border-radius: 8px;
-  border: 1px solid var(#dfdfdf);
+  border: 1px solid #dfdfdf;
+}
+
+.arrow_back{
+  cursor: pointer;
+  position: absolute;
+  top: 24px;
+  left: 24px;
 }
 
 .container {
@@ -209,7 +232,7 @@ const changeCode = () => {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 50px;
+    gap: 30px;
 
     &__form {
       display: flex;
@@ -239,6 +262,17 @@ const changeCode = () => {
           font-style: normal;
           font-weight: 400;
           line-height: normal;
+
+          &.final_logo{
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+
+            img{
+              width: 120px;
+              height: 120px;
+            }
+          }
         }
 
         .title {
@@ -248,6 +282,16 @@ const changeCode = () => {
           font-weight: 500;
           line-height: normal;
           color: #000;
+        }
+
+        p{
+          color: #808080;
+          text-align: center;
+          font-family: Roboto;
+          font-size: 16px;
+          font-style: normal;
+          font-weight: 400;
+          line-height: 18px;
         }
       }
 
@@ -307,6 +351,28 @@ const changeCode = () => {
               top: -20px;
               font-size: 12px;
           }
+
+          input:not(:invalid) + label{
+              top: -20px;
+              font-size: 12px;
+          }
+
+          .send{
+            cursor: pointer;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-family: Roboto;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 24px; /* 171.429% */
+            letter-spacing: 0.15px; 
+            color: #007AFF;
+            background-color: transparent;
+            border: none;
+          }
+
           label {
             position: absolute;
             top: 15px;
@@ -319,6 +385,7 @@ const changeCode = () => {
             letter-spacing: 0.15px;
             color: #9e9e9e;
             transition: 0.3s all;
+            pointer-events: none;
           }
 
           input {
@@ -389,7 +456,14 @@ const changeCode = () => {
         font-style: normal;
         font-weight: 500;
         line-height: 36px;
+        width: 100%;
       }
+
+      &.final{
+        height: 120px;
+        flex-direction: column-reverse ;
+      }
+
 
     .back{
       cursor: pointer;
@@ -400,6 +474,11 @@ const changeCode = () => {
       align-items: center;
       gap: 10px;
       flex: 1 0 0;
+
+      .send{
+        position: absolute;
+        top: 10px;
+      }
 
       p{
         color: #007AFF;
