@@ -2,26 +2,30 @@
   <div class="main">
     <form class="form_auth">
       <div class="arrow_back" @click="navigateBack" v-if="step === 'final'">
-        <img src="../assets/icons/arrow_back.svg" alt="Arrow back icon"/>
+        <img src="../assets/icons/arrow_back.svg" alt="Arrow back icon" />
       </div>
       <div class="container">
         <div class="container__main">
           <div class="container__main__form">
             <div class="container__main__form__header">
-              <div class="logo" :class="{'final_logo' : step === 'final'}">
-                <p v-if="step === 'create' || step === 'send'">{{ $t("title.logo") }}</p>
-                <img src="../assets/icons/telegram_big.svg" alt = "Big telegram logo" v-if="step === 'final'"/>
+              <div class="logo" :class="{ final_logo: step === 'final' }">
+                <p v-if="step === 'create' || step === 'send'">{{ $t('title.logo') }}</p>
+                <img
+                  src="../assets/icons/telegram_big.svg"
+                  alt="Big telegram logo"
+                  v-if="step === 'final'"
+                />
               </div>
-              <h2 class="title" v-if="step === 'create'">{{ $t("title.phone") }}</h2>
-              <h2 class="title" v-if="step === 'send'">{{ $t("title.code") }}</h2>
+              <h2 class="title" v-if="step === 'create'">{{ $t('title.phone') }}</h2>
+              <h2 class="title" v-if="step === 'send'">{{ $t('title.code') }}</h2>
               <h2 class="title" v-if="step === 'final'">Telegram</h2>
-              <p v-if="step === 'create'">{{$t("paragraph.register")}}</p>
-              <p v-if="step === 'send'">{{ $t("paragraph.to_number") }} {{ phone }}</p>
-              <p v-if="step === 'final'">{{ $t("paragraph.channel") }}</p>
+              <p v-if="step === 'create'">{{ $t('paragraph.register') }}</p>
+              <p v-if="step === 'send'">{{ $t('paragraph.to_number') }} {{ phone }}</p>
+              <p v-if="step === 'final'">{{ $t('paragraph.channel') }}</p>
             </div>
             <div class="container__main__form__inputs" v-if="step === 'create' || step === 'send'">
               <div class="country">
-                <label v-if="step === 'create'">{{ $t("inputs.country") }}</label>
+                <label v-if="step === 'create'">{{ $t('inputs.country') }}</label>
                 <select
                   v-model="selected"
                   :value="selected"
@@ -29,27 +33,33 @@
                   placeholder="Страна"
                   v-if="step === 'create'"
                 >
-                  <option v-for="code in codes" v-bind:value="code.dial_code">
+                  <option v-for="code in codes" v-bind:value="code.dial_code" :key="code.name">
                     {{ code.name }}
                     {{ code.flag }}
                     {{ code.dial_code }}
                   </option>
                 </select>
-                <label v-if="step === 'send'">{{ $t("inputs.code_option") }}</label>
+                <label v-if="step === 'send'">{{ $t('inputs.code_option') }}</label>
                 <select
                   v-model="option"
                   :value="option"
                   placeholder="Способ получения кода"
                   v-if="step === 'send'"
                 >
-                  <option v-for="option in options" v-bind:value="option.name">
+                  <option v-for="option in options" v-bind:value="option.name" :key="option.name">
                     {{ option.name }}
                     <img :src="option.icon" alt="Social media icon" />
                   </option>
                 </select>
               </div>
               <div class="number">
-                <input type="text" v-model="code" :class="{ invalid: !isValidCode }" v-if="step == 'send'" required/>
+                <input
+                  type="text"
+                  v-model="code"
+                  :class="{ invalid: !isValidCode }"
+                  v-if="step == 'send'"
+                  required
+                />
                 <input
                   :class="{ invalid: !isValidPhoneNumber }"
                   type="text"
@@ -58,26 +68,34 @@
                   v-if="step === 'create'"
                   required
                 />
-                
-                <label v-if="step === 'create'">{{ $t("inputs.phone") }}</label>
-                <label v-if="step === 'send'">{{ $t("inputs.code") }}</label>
-                <div class="validation" v-if="!isValidPhoneNumber">{{ $t("inputs.wrong_phone") }}</div>
-                <div class="validation" v-if="!isValidCode">{{ $t("inputs.wrong_code") }}</div>
-                <button class="send" @click.prevent="sendCode" v-if="step === 'send'">{{ $t("buttons.send") }}</button>
+
+                <label v-if="step === 'create'">{{ $t('inputs.phone') }}</label>
+                <label v-if="step === 'send'">{{ $t('inputs.code') }}</label>
+                <div class="validation" v-if="!isValidPhoneNumber">
+                  {{ $t('inputs.wrong_phone') }}
+                </div>
+                <div class="validation" v-if="!isValidCode">{{ $t('inputs.wrong_code') }}</div>
+                <button class="send" @click.prevent="sendCode" v-if="step === 'send'">
+                  {{ $t('buttons.send') }}
+                </button>
               </div>
             </div>
           </div>
-          <div class="container__main__button" :class="{'final': step === 'final'}">
+          <div class="container__main__button" :class="{ final: step === 'final' }">
             <div class="back" v-if="step === 'send'" @click="navigateBack">
               <img src="../assets/icons/arrow_back_blue.svg" alt="Arrow back" />
-              <p>{{ $t("buttons.back") }}</p>
+              <p>{{ $t('buttons.back') }}</p>
             </div>
             <div class="back" v-if="step === 'final'">
-              <p>{{ $t("buttons.status") }}</p>
+              <p>{{ $t('buttons.status') }}</p>
             </div>
-            <button @click.prevent="createSession" v-if="step === 'create'">{{ $t("buttons.register") }}</button>
-            <button @click.prevent="checkCode" v-if="step === 'send'">{{ $t("buttons.register") }}</button>
-            <button v-if="step === 'final'">{{ $t("buttons.authorize") }}</button>
+            <button @click.prevent="createSession" v-if="step === 'create'">
+              {{ $t('buttons.register') }}
+            </button>
+            <button @click.prevent="checkCode" v-if="step === 'send'">
+              {{ $t('buttons.register') }}
+            </button>
+            <button v-if="step === 'final'">{{ $t('buttons.authorize') }}</button>
           </div>
         </div>
         <div class="container__footer">
@@ -85,8 +103,8 @@
             <LanguageSwitcher></LanguageSwitcher>
           </div>
           <div class="container__footer__terms" v-if="step === 'create' || step === 'send'">
-            <p>{{ $t("footer.terms") }}</p>
-            <p>{{ $t("footer.conf") }}</p>
+            <p>{{ $t('footer.terms') }}</p>
+            <p>{{ $t('footer.conf') }}</p>
           </div>
         </div>
       </div>
@@ -95,21 +113,24 @@
 </template>
 
 <script setup>
-import { ref, onUpdated, onMounted } from 'vue'
+import { ref } from 'vue'
 import axios from 'axios'
 import codes from '../api/data/phone_codes.json'
 
-import LanguageSwitcher from './LanguageSwitcher.vue';
+import LanguageSwitcher from './LanguageSwitcher.vue'
+
+const key = import.meta.env.VITE_API_KEY
 
 const selected = ref(null)
-const lang = ref('Русский')
 const phone = ref('')
-const status = ref(false)
-let isValidPhoneNumber = ref(true)
-let isValidCode = ref(true)
-const step = ref('create')
 const code = ref('')
 const session_id = ref('')
+
+let isValidPhoneNumber = ref(true)
+let isValidCode = ref(true)
+
+const step = ref('create')
+
 const option = ref('')
 const options = ref([
   {
@@ -129,13 +150,6 @@ const options = ref([
     icon: '/src/assets/icons/sms.svg'
   }
 ])
-
-
-onMounted(() => {
-  console.log(codes)
-})
-
-const key = import.meta.env.VITE_API_KEY
 
 const validatePhoneNumber = () => {
   const validationRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/im
@@ -172,22 +186,22 @@ const sendCode = async () => {
 
 const checkCode = async () => {
   if (session_id.value) {
-    try{
+    try {
       const response = await axios.get(
-      `https://api.kod.mobi/api/v1/message/check?session_id=${session_id.value}&code=${code.value}&lang=ru&x-api-key=${key}`
-    )
-    console.log(response.data.data);
-    isValidCode.value = true
-    step.value = 'final'
-    }catch(error){
+        `https://api.kod.mobi/api/v1/message/check?session_id=${session_id.value}&code=${code.value}&lang=ru&x-api-key=${key}`
+      )
+      console.log(response.data.data)
+      isValidCode.value = true
+      step.value = 'final'
+    } catch (error) {
       console.log(error)
       isValidCode.value = false
     }
   }
 }
 
-const navigateBack = () =>{
-  step.value = 'create';
+const navigateBack = () => {
+  step.value = 'create'
 }
 
 const changeCode = () => {
@@ -215,7 +229,7 @@ const changeCode = () => {
   border: 1px solid #dfdfdf;
 }
 
-.arrow_back{
+.arrow_back {
   cursor: pointer;
   position: absolute;
   top: 24px;
@@ -263,12 +277,12 @@ const changeCode = () => {
           font-weight: 400;
           line-height: normal;
 
-          &.final_logo{
+          &.final_logo {
             align-items: center;
             justify-content: center;
             background: #fff;
 
-            img{
+            img {
               width: 120px;
               height: 120px;
             }
@@ -284,7 +298,7 @@ const changeCode = () => {
           color: #000;
         }
 
-        p{
+        p {
           color: #808080;
           text-align: center;
           font-family: Roboto;
@@ -347,17 +361,17 @@ const changeCode = () => {
         .number {
           position: relative;
 
-          input:focus + label{
-              top: -20px;
-              font-size: 12px;
+          input:focus + label {
+            top: -20px;
+            font-size: 12px;
           }
 
-          input:not(:invalid) + label{
-              top: -20px;
-              font-size: 12px;
+          input:not(:invalid) + label {
+            top: -20px;
+            font-size: 12px;
           }
 
-          .send{
+          .send {
             cursor: pointer;
             position: absolute;
             top: 15px;
@@ -367,8 +381,8 @@ const changeCode = () => {
             font-style: normal;
             font-weight: 500;
             line-height: 24px; /* 171.429% */
-            letter-spacing: 0.15px; 
-            color: #007AFF;
+            letter-spacing: 0.15px;
+            color: #007aff;
             background-color: transparent;
             border: none;
           }
@@ -381,7 +395,7 @@ const changeCode = () => {
             font-size: 16px;
             font-style: normal;
             font-weight: 400;
-            line-height: 24px; 
+            line-height: 24px;
             letter-spacing: 0.15px;
             color: #9e9e9e;
             transition: 0.3s all;
@@ -459,37 +473,36 @@ const changeCode = () => {
         width: 100%;
       }
 
-      &.final{
+      &.final {
         height: 120px;
-        flex-direction: column-reverse ;
+        flex-direction: column-reverse;
       }
 
+      .back {
+        cursor: pointer;
+        display: flex;
+        height: 55px;
+        padding: 0px 16px;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        flex: 1 0 0;
 
-    .back{
-      cursor: pointer;
-      display: flex;
-      height: 55px;
-      padding: 0px 16px;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      flex: 1 0 0;
+        .send {
+          position: absolute;
+          top: 10px;
+        }
 
-      .send{
-        position: absolute;
-        top: 10px;
+        p {
+          color: #007aff;
+          text-align: center;
+          font-family: Roboto;
+          font-size: 16px;
+          font-style: normal;
+          font-weight: 500;
+          line-height: 36px;
+        }
       }
-
-      p{
-        color: #007AFF;
-        text-align: center;
-        font-family: Roboto;
-        font-size: 16px;
-        font-style: normal;
-        font-weight: 500;
-        line-height: 36px;
-      }
-    }
     }
   }
 
